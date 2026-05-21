@@ -64,8 +64,8 @@ def main():
     ]
     for wp in windsurf_paths:
         if wp.parent.exists():
-            _write_mcp_config(wp, "persona", server_config)
-            configured.append(f"Windsurf ({wp})")
+            if _write_mcp_config(wp, "persona", server_config):
+                configured.append(f"Windsurf ({wp})")
             break
 
     # --- Claude Desktop ---
@@ -76,8 +76,8 @@ def main():
     ]
     for cp in claude_paths:
         if cp.parent.exists():
-            _write_mcp_config(cp, "persona", server_config)
-            configured.append(f"Claude Desktop ({cp})")
+            if _write_mcp_config(cp, "persona", server_config):
+                configured.append(f"Claude Desktop ({cp})")
             break
 
     # --- VS Code / Cursor ---
@@ -90,8 +90,8 @@ def main():
     ]
     for vp in vscode_paths:
         if vp.exists():
-            _write_vscode_config(vp, "persona", server_config)
-            configured.append(f"VS Code/Cursor ({vp})")
+            if _write_vscode_config(vp, "persona", server_config):
+                configured.append(f"VS Code/Cursor ({vp})")
 
     print()
     if configured:
@@ -156,7 +156,7 @@ def _write_vscode_config(path, name, server_config):
             snippet = json.dumps({"mcpServers": {name: server_config}}, indent=4)
             for line in snippet.splitlines():
                 print(f"    {line}")
-            return
+            return False
 
     config = {}
     if path.exists():
@@ -168,6 +168,7 @@ def _write_vscode_config(path, name, server_config):
     config["mcpServers"][name] = server_config
     path.write_text(json.dumps(config, indent=2))
     print(f"  Wrote: {path}")
+    return True
 
 
 if __name__ == "__main__":
