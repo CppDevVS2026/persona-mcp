@@ -125,7 +125,12 @@ def _write_mcp_config(path, name, server_config):
         try:
             config = json.loads(path.read_text())
         except (json.JSONDecodeError, OSError):
-            config = {}
+            print(f"  SKIPPED: {path} (contains invalid JSON)")
+            print("  Add this manually to that file:")
+            snippet = json.dumps({"mcpServers": {name: server_config}}, indent=4)
+            for line in snippet.splitlines():
+                print(f"    {line}")
+            return False
 
     if "mcpServers" not in config:
         config["mcpServers"] = {}
@@ -135,6 +140,7 @@ def _write_mcp_config(path, name, server_config):
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(config, indent=2))
     print(f"  Wrote: {path}")
+    return True
 
 
 def _write_vscode_config(path, name, server_config):
