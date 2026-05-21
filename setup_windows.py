@@ -138,13 +138,23 @@ def _write_mcp_config(path, name, server_config):
 
 
 def _write_vscode_config(path, name, server_config):
-    """Add MCP config to VS Code settings.json."""
-    config = {}
+    """Add MCP config to VS Code settings.json (JSONC-safe)."""
     if path.exists():
         try:
-            config = json.loads(path.read_text())
+            json.loads(path.read_text())
         except (json.JSONDecodeError, OSError):
-            config = {}
+            # VS Code settings.json is JSONC (comments/trailing commas).
+            # Cannot safely parse — skip to avoid destroying user settings.
+            print(f"  SKIPPED: {path} (contains comments or non-standard JSON)")
+            print("  Add this manually in VS Code settings (Ctrl+Shift+P → Settings JSON):")
+            snippet = json.dumps({"mcpServers": {name: server_config}}, indent=4)
+            for line in snippet.splitlines():
+                print(f"    {line}")
+            return
+
+    config = {}
+    if path.exists():
+        config = json.loads(path.read_text())
 
     if "mcpServers" not in config:
         config["mcpServers"] = {}
